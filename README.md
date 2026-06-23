@@ -221,7 +221,7 @@ This system is **100% offline** after initial setup:
 
 ---
 
-## 👨‍💻 Final Year Project Information
+## 👨‍💻 Project Information
 
 **Title:** Agentic AI Based Offline C++ Learning Assistant using Ollama (Phi-3)
 
