@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C++ AI Assistant — Powered by Phi-3</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  SIDEBAR                                   -->
+<!-- ══════════════════════════════════════════ -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-area">
+      <span class="logo-icon">⚡</span>
+      <div>
+        <div class="logo-title">C++ Assistant</div>
+        <div class="logo-sub">Powered by Phi-3 (Offline)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-label">MODES</div>
+
+    <button class="nav-btn active" id="btn-chat" onclick="setMode('chat')">
+      <i class="bi bi-chat-dots"></i>
+      <span>Chat</span>
+      <span class="mode-badge">AI</span>
+    </button>
+
+    <button class="nav-btn" id="btn-code" onclick="setMode('code')">
+      <i class="bi bi-code-slash"></i>
+      <span>Code Explainer</span>
+    </button>
+
+    <button class="nav-btn" id="btn-debug" onclick="setMode('debug')">
+      <i class="bi bi-bug"></i>
+      <span>Debugger</span>
+    </button>
+
+    <button class="nav-btn" id="btn-quiz" onclick="setMode('quiz')">
+      <i class="bi bi-patch-question"></i>
+      <span>Quiz Mode</span>
+    </button>
+
+    <button class="nav-btn" id="btn-recommend" onclick="setMode('recommend')">
+      <i class="bi bi-lightbulb"></i>
+      <span>Recommendations</span>
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="clear-btn" onclick="clearChat()">
+      <i class="bi bi-trash3"></i> Clear Chat
+    </button>
+    <div class="agent-status" id="agentStatus">
+      <span class="status-dot"></span>
+      <span>Router Agent Active</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  MAIN CONTENT                              -->
+<!-- ══════════════════════════════════════════ -->
+<div class="main-content" id="mainContent">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+      <i class="bi bi-list"></i>
+    </button>
+    <div class="topbar-title" id="topbarTitle">
+      <i class="bi bi-chat-dots me-2"></i>C++ Chat Assistant
+    </div>
+    <div class="agent-pill" id="agentPill">
+      <span class="pulse-dot"></span>
+      Chat Agent
+    </div>
+  </div>
+
+  <!-- Chat area -->
+  <div class="chat-container" id="chatContainer">
+
+    <!-- Welcome message -->
+    <div class="welcome-screen" id="welcomeScreen">
+      <div class="welcome-icon">⚡</div>
+      <h2>C++ Learning Assistant</h2>
+      <p>Your fully offline AI tutor powered by <strong>Ollama Phi-3</strong>. Ask anything about C++.</p>
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="sendQuickMessage('What are pointers in C++ and how do they work?')">
+          <i class="bi bi-arrow-right-circle"></i> What are C++ pointers?
+        </button>
+        <button class="quick-btn" onclick="sendQuickMessage('Generate a quiz on C++ OOP concepts')">
+          <i class="bi bi-patch-question"></i> Quiz me on OOP
+        </button>
+        <button class="quick-btn" onclick="sendQuickMessage('What should I learn next in C++?')">
+          <i class="bi bi-lightbulb"></i> Suggest topics for me
+        </button>
+        <button class="quick-btn" onclick="setMode('debug'); focusInput()">
+          <i class="bi bi-bug"></i> Debug my code
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages will be inserted here -->
+    <div id="messageList"></div>
+
+    <!-- Typing indicator -->
+    <div class="typing-indicator" id="typingIndicator" style="display:none;">
+      <div class="typing-bubble">
+        <div class="agent-label" id="typingAgentLabel">Chat Agent</div>
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INPUT AREA ── -->
+  <div class="input-area">
+
+    <!-- Code input panel (shown in code/debug modes) -->
+    <div class="code-panel" id="codePanel" style="display:none;">
+      <div class="code-panel-header">
+        <span id="codePanelLabel"><i class="bi bi-code-slash"></i> Paste your C++ code below</span>
+        <button onclick="clearCodePanel()" class="code-clear-btn"><i class="bi bi-x"></i></button>
+      </div>
+      <textarea id="codeInput" placeholder="#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    // Paste your C++ code here...
+    return 0;
+}" spellcheck="false"></textarea>
+    </div>
+
+    <!-- Quiz topic panel -->
+    <div class="quiz-panel" id="quizPanel" style="display:none;">
+      <div class="quiz-panel-inner">
+        <label><i class="bi bi-patch-question me-1"></i>Quiz Topic:</label>
+        <input type="text" id="quizTopic" placeholder="e.g. pointers, templates, STL, OOP..." />
+        <button onclick="generateQuiz()" class="quiz-generate-btn">
+          <i class="bi bi-play-fill"></i> Generate Quiz
+        </button>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <div class="input-wrapper">
+        <textarea
+          id="messageInput"
+          placeholder="Ask anything about C++..."
+          rows="1"
+          onkeydown="handleKeyDown(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </div>
+    <div class="input-hint">
+      Press <kbd>Enter</kbd> to send &nbsp;·&nbsp; <kbd>Shift+Enter</kbd> for new line &nbsp;·&nbsp;
+      <span id="modeHint">Mode: <strong>Chat</strong></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  SCRIPTS                                   -->
+<!-- ══════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/build/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css" />
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
