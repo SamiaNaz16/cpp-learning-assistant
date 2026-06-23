@@ -1,5 +1,5 @@
 # ⚡ Agentic AI Based Offline C++ Learning Assistant
-### Powered by Ollama (Phi-3) | Final Year Project
+### Powered by Ollama (Phi-3) 
 
 ---
 
